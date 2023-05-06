@@ -19,8 +19,11 @@ import net.mamoe.mirai.internal.network.protocol.packet.chat.image.ImgStore
 import net.mamoe.mirai.internal.network.protocol.packet.chat.image.LongConn
 import net.mamoe.mirai.internal.network.protocol.packet.chat.receive.*
 import net.mamoe.mirai.internal.network.protocol.packet.chat.voice.PttStore
+import net.mamoe.mirai.internal.network.protocol.packet.list.*
 import net.mamoe.mirai.internal.network.protocol.packet.list.FriendList
+import net.mamoe.mirai.internal.network.protocol.packet.list.OperateService
 import net.mamoe.mirai.internal.network.protocol.packet.list.ProfileService
+import net.mamoe.mirai.internal.network.protocol.packet.list.QzoneNewService
 import net.mamoe.mirai.internal.network.protocol.packet.list.StrangerList
 import net.mamoe.mirai.internal.network.protocol.packet.login.ConfigPushSvc
 import net.mamoe.mirai.internal.network.protocol.packet.login.Heartbeat
@@ -179,6 +182,10 @@ internal object KnownPacketFactories {
         SummaryCard.ReqSummaryCard,
         ChangeFriendRemark,
         MusicSharePacket,
+        OperateService.VisitorSvc,
+        QzoneNewService.GetMainPage,
+        QzoneNewService.GetFacade,
+        QzoneNewService.Like,
         *FileManagement.factories
     )
 

@@ -12,6 +12,7 @@ package net.mamoe.mirai.internal.network.components
 import kotlinx.coroutines.*
 import net.mamoe.mirai.internal.network.component.ComponentKey
 import net.mamoe.mirai.internal.network.handler.NetworkHandler
+import net.mamoe.mirai.internal.network.protocol.packet.chat.receive.getT544String
 import net.mamoe.mirai.internal.network.protocol.packet.login.wtlogin.WtLogin15
 import net.mamoe.mirai.network.LoginFailedException
 import net.mamoe.mirai.utils.MiraiLogger
@@ -66,6 +67,11 @@ internal class KeyRefreshProcessorImpl(
     }
 
     override suspend fun refreshKeysNow(handler: NetworkHandler) {
-        handler.sendAndExpect(WtLogin15(handler.context[SsoProcessor].client))
+        val  client =handler.context[SsoProcessor].client
+        val str = getT544String(client.bot,"810_b")
+        handler.sendAndExpect(WtLogin15(client,str))
+        handler.context[SsoProcessor].client.bot.apply {
+            components[AccountSecretsManager].saveSecrets(account, AccountSecretsImpl(client))
+        }
     }
 }

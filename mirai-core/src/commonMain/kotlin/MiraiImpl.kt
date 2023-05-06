@@ -12,10 +12,16 @@
 package net.mamoe.mirai.internal
 
 import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -42,6 +48,7 @@ import net.mamoe.mirai.internal.message.image.*
 import net.mamoe.mirai.internal.message.source.*
 import net.mamoe.mirai.internal.message.toMessageChainNoSource
 import net.mamoe.mirai.internal.network.components.EventDispatcher
+import net.mamoe.mirai.internal.network.components.HttpClientProvider
 import net.mamoe.mirai.internal.network.highway.ChannelKind
 import net.mamoe.mirai.internal.network.highway.ResourceKind
 import net.mamoe.mirai.internal.network.highway.tryDownload
@@ -57,9 +64,13 @@ import net.mamoe.mirai.internal.network.protocol.packet.chat.NudgePacket
 import net.mamoe.mirai.internal.network.protocol.packet.chat.PbMessageSvc
 import net.mamoe.mirai.internal.network.protocol.packet.chat.voice.PttStore
 import net.mamoe.mirai.internal.network.protocol.packet.list.FriendList
+import net.mamoe.mirai.internal.network.protocol.packet.list.OperateService
+import net.mamoe.mirai.internal.network.protocol.packet.list.QzoneNewService
 import net.mamoe.mirai.internal.network.protocol.packet.login.StatSvc
 import net.mamoe.mirai.internal.network.protocol.packet.summarycard.SummaryCard
 import net.mamoe.mirai.internal.network.sKey
+import net.mamoe.mirai.internal.network.sdkVersion
+import net.mamoe.mirai.internal.network.str
 import net.mamoe.mirai.internal.utils.MiraiProtocolInternal
 import net.mamoe.mirai.internal.utils.crypto.TEA
 import net.mamoe.mirai.internal.utils.io.serialization.loadAs
@@ -67,6 +78,7 @@ import net.mamoe.mirai.message.action.Nudge
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.utils.*
 import kotlin.jvm.JvmName
+import kotlin.math.log
 
 internal fun getMiraiImpl() = Mirai as MiraiImpl
 
@@ -501,7 +513,68 @@ internal open class MiraiImpl : IMirai, LowLevelApiAccessor {
         isLenient = true
         ignoreUnknownKeys = true
     }
-
+    override suspend fun thumbsUp(bot: Bot, id: Long, number: Int): String {
+        val robot: QQAndroidBot = bot.asQQAndroidBot()
+        return  robot.network.sendAndExpect(
+            OperateService.VisitorSvc(robot.client, number, id, robot.id), 5000, 2).message
+    }
+    override suspend fun likeQQZone(bot: Bot, id: Long, type: Int,number:Int): String {
+        bot.asQQAndroidBot()
+        return if(this.visitQQZone(bot, id) == "访问成功"){
+            bot.network.sendAndExpect(QzoneNewService.Like(bot.client, id,type,number), 5000, 2).message
+        }else{
+            "访问被拒"
+        }
+    }
+    private suspend fun attendance(bot:Bot, type: Int){
+        bot.asQQAndroidBot()
+        val id = bot.id
+        val skey = bot.client.wLoginSigInfo.sKey.str
+        val pskey = bot.client.wLoginSigInfo.getPsKey("ti.qq.com")
+        bot.components[HttpClientProvider].getHttpClient().post {
+            url("https://ti.qq.com/hybrid-h5/api/json/daily_attendance/SignIn ")
+            setBody(body = """{"uin":"$id","type":$type,"qua":"V1_AND_SQ_8.9.28_3700_YYB_D","mpExtend":{"tianshuAdsReq":"{\"app\":\"QQ\",\"os\":\"Android\",\"version\":\"8.9.28\",\"imei\":\"\"}"}}""")
+            headers {
+                append(HttpHeaders.Accept, "application/json, text/plain, */*")
+                append(HttpHeaders.AcceptEncoding, "gzip, deflate, br")
+                append(HttpHeaders.AcceptLanguage, "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7")
+                append(HttpHeaders.UserAgent, "Mozilla/5.0 (Linux; Android 7.1.2; ${bot.client.device.product.decodeToString()} Build/${bot.client.device.model.decodeToString()}; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/98.0.4758.102 MQQBrowser/6.2 TBS/046337 Mobile Safari/537.36 V1_AND_SQ_8.9.28_3700_YYB_D QQ/8.9.28.10155 NetType/WIFI WebP/0.3.0 AppId/537147632 Pixel/1440 StatusBarHeight/104 SimpleUISwitch/0 QQTheme/1000 StudyMode/0 CurrentMode/0 CurrentFontScale/1.0 GlobalDensityScale/1.0285714 AllowLandscape/false InMagicWin/0")
+                append(HttpHeaders.ContentType, "application/json")
+                append(HttpHeaders.Origin, "https://ti.qq.com")
+                append(HttpHeaders.Referrer, "https://ti.qq.com/signin/public/index.html?_wv=1090528161&_wwv=13")
+                append("Sec-Fetch-Dest", "empty")
+                append("Sec-Fetch-Mode", "cors")
+                append("Sec-Fetch-Site", "same-origin")
+                append(HttpHeaders.Connection, "keep-alive")
+                append(HttpHeaders.Host, "ti.qq.com")
+                append(HttpHeaders.Cookie,"uin=o$id; p_uin=o$id; skey=$skey; p_skey=$pskey; qq_locale_id=2052; a2=D93B5705C776F0D52EEF6DB13CD5382B4EE0B1A4CF13335F0B012F243A545BC16DCF1A74A38AC8619655B49176AEA74B3912F931E15AF2F872B4E243AE0CBC46166AFBF26858AFEE")
+            }
+        }
+    }
+    override suspend fun dailyAttendance(bot: Bot): Boolean {
+        attendance(bot,1)
+        return true
+    }
+    override suspend fun dailyEveningAttendance(bot: Bot): Boolean {
+        attendance(bot,2)
+        return true
+    }
+    override suspend fun dailyVipMallAttendance(bot:Bot):Boolean{
+         bot.asQQAndroidBot()
+//         val id = bot.id
+//         val skey = bot.client.wLoginSigInfo.sKey.str
+//         val pskey = bot.client.wLoginSigInfo.getPsKey("vip.qq.com")
+//         val ps4_key = bot.client.wLoginSigInfo.pt4TokenMap["zb.vip.qq.com"]
+//         println(pskey)
+//         println(ps4_key.toString())
+         return true
+     }
+    override suspend fun visitQQZone(bot: Bot, id: Long): String {
+        bot.asQQAndroidBot()
+        val result =bot.network.sendAndExpect(QzoneNewService.GetMainPage(bot.client, id), 5000, 2)
+        bot.network.sendAndExpect(QzoneNewService.GetFacade(bot.client, id), 5000, 2)
+        return result.message
+    }
 
     override suspend fun solveNewFriendRequestEvent(
         bot: Bot,

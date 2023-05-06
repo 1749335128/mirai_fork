@@ -23,6 +23,7 @@ internal object WtLogin15 : WtLoginExt {
 
     operator fun invoke(
         client: QQAndroidClient,
+        t544String:String
     ) = WtLogin.ExchangeEmp.buildOutgoingUniPacket(
         client, bodyType = 2, key = ByteArray(16), remark = "15:refresh-keys"
     ) {
@@ -123,7 +124,7 @@ internal object WtLogin15 : WtLoginExt {
 
             t521() // new
             t525(client.loginExtraData) // new
-            //t544() // new
+            t544(t544String) // new
         }
 
         //  }

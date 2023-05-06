@@ -107,7 +107,13 @@ public interface Bot : CoroutineScope, ContactOrBot, UserOrBot {
      * 以 [对方 QQ 号码][id] 获取一个陌生人对象, 在获取失败时抛出 [NoSuchElementException].
      */
     public fun getStrangerOrFail(id: Long): Stranger = getStranger(id) ?: throw NoSuchElementException("stranger $id")
+    /**
+     * [Bot]每日签到打卡.在登录的前提下才能执行 查看 [close] 获取更多信息.
+     */
+    public suspend fun dailyAttendance(): Boolean = Mirai.dailyAttendance(this)
 
+    public suspend fun dailyEveningAttendance():Boolean= Mirai.dailyEveningAttendance(this)
+    public suspend fun dailyVipMallAttendance():Boolean= Mirai.dailyVipMallAttendance(this)
     /**
      * 好友列表. 与服务器同步更新.
      */

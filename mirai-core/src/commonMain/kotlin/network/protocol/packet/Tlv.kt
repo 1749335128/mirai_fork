@@ -11,8 +11,16 @@
 
 package net.mamoe.mirai.internal.network.protocol.packet
 
+import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import net.mamoe.mirai.internal.network.*
+import net.mamoe.mirai.internal.network.components.HttpClientProvider
 import net.mamoe.mirai.internal.network.protocol.LoginType
 import net.mamoe.mirai.internal.utils.GuidSource
 import net.mamoe.mirai.internal.utils.MacOrAndroidIdChangeFlag
@@ -511,7 +519,6 @@ internal fun BytePacketBuilder.t144(
     buildModel: ByteArray,
     guid: ByteArray,
     buildBrand: ByteArray,
-
     // encrypt
     tgtgtKey: ByteArray
 ) {
@@ -702,6 +709,7 @@ internal fun BytePacketBuilder.t511(
         "docs.qq.com",
         "connect.qq.com",
         "qzone.qq.com",
+//        "zb.vip.qq.com",
         "vip.qq.com",
         "gamecenter.qq.com",
         "qun.qq.com",
@@ -950,10 +958,17 @@ internal fun BytePacketBuilder.t525(
 }
 
 internal fun BytePacketBuilder.t544( // 1334
+  s:String
 ) {
     writeShort(0x544)
     writeShortLVPacket {
-        writeFully(byteArrayOf(0, 0, 0, 11)) // means native throws exception
+        if(s != "") {
+            println("获取成功:$s")
+            writeFully(s.hexToBytes())
+        }
+        else {
+            writeFully(byteArrayOf(0, 0, 0, 11))
+        }
     }
 }
 

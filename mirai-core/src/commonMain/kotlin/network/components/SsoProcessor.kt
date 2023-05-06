@@ -24,6 +24,7 @@ import net.mamoe.mirai.internal.network.handler.logger
 import net.mamoe.mirai.internal.network.handler.selector.NetworkException
 import net.mamoe.mirai.internal.network.handler.selector.SelectorRequireReconnectException
 import net.mamoe.mirai.internal.network.protocol.packet.OutgoingPacketWithRespType
+import net.mamoe.mirai.internal.network.protocol.packet.chat.receive.getT544String
 import net.mamoe.mirai.internal.network.protocol.packet.login.DeviceVerificationResultImpl
 import net.mamoe.mirai.internal.network.protocol.packet.login.SmsDeviceVerificationResult
 import net.mamoe.mirai.internal.network.protocol.packet.login.StatSvc
@@ -59,7 +60,7 @@ internal interface SsoProcessor {
     val registerResp: StatSvc.Register.Response?
 
     /**
-     * Do login. Throws [LoginFailedException] if failed
+     * Do log in. Throws [LoginFailedException] if failed
      */
     @Throws(LoginFailedException::class, CancellationException::class)
     suspend fun login(handler: NetworkHandler)
@@ -155,7 +156,7 @@ internal class SsoProcessorImpl(
     }
 
     /**
-     * Do login. Throws [LoginFailedException] if failed
+     * Do log in. Throws [LoginFailedException] if failed
      */
     override suspend fun login(handler: NetworkHandler) {
 
@@ -471,6 +472,8 @@ internal class SsoProcessorImpl(
                     is LoginPacketResponse.SmsRequestSuccess -> {
                         error("Unexpected response: $response")
                     }
+
+                    else -> {}
                 }
             }
 
@@ -484,7 +487,7 @@ internal class SsoProcessorImpl(
 
     private inner class FastLoginImpl(handler: NetworkHandler) : LoginStrategy(handler) {
         override suspend fun doLogin() {
-            val login10 = handler.sendAndExpect(WtLogin10(client))
+            val login10 = handler.sendAndExpect(WtLogin10(client, t544String = getT544String(client.bot)))
             check(login10 is LoginPacketResponse.Success) { "Fast login failed: $login10" }
         }
     }

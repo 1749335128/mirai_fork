@@ -305,6 +305,30 @@ public interface IMirai : LowLevelApiAccessor {
      * 广播一个事件. 由 [Event.broadcast] 调用.
      */
     public suspend fun broadcastEvent(event: Event)
+    /**
+     * 点赞
+     * @see thumbsUp
+     */
+    public suspend fun thumbsUp(bot: Bot, id: Long,number:Int): String
+    /**
+     * 访问空间
+     * @see visitQQZone
+     */
+    public suspend fun visitQQZone(bot: Bot, id: Long): String
+    /**
+     * 空间互动
+     * @see likeQQZone
+     * @param type 1、爱心 , 2、涂鸦 、3、平底锅
+     * @param number 数量
+     */
+    public suspend fun likeQQZone(bot: Bot, id: Long, type: Int,number:Int): String
+    /**
+     * 每日打卡
+     * @see dailyAttendance
+     */
+    public suspend fun dailyAttendance(bot:Bot): Boolean
+    public  suspend fun dailyVipMallAttendance(bot: Bot):Boolean
+    public suspend fun dailyEveningAttendance(bot:Bot):Boolean
 }
 
 /**

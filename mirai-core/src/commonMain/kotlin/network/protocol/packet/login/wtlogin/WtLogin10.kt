@@ -28,6 +28,7 @@ internal object WtLogin10 : WtLoginExt {
         subAppId: Long = 100,
         mainSigMap: Int = client.mainSigMap,
         remark: String = "10:fast-login",
+        t544String:String
     ) = WtLogin.ExchangeEmp.buildLoginOutgoingPacket(
         client, bodyType = 2, key = ByteArray(16), remark = remark
     ) { sequenceId ->
@@ -82,7 +83,7 @@ internal object WtLogin10 : WtLoginExt {
                 t194(client.device.imsiMd5)
                 t511()
                 t202(client.device.wifiBSSID, client.device.wifiSSID)
-                //t544()
+                t544(t544String)
 
             }
         }

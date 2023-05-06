@@ -94,6 +94,23 @@ public interface User : Contact, UserOrBot, CoroutineScope {
      * @since 2.1
      */
     public suspend fun queryProfile(): UserProfile = Mirai.queryProfile(bot, this.id)
+    /**
+     * 点赞
+     * @see thumbsUp
+     */
+    public  suspend fun thumbsUp(number: Int =1):String = Mirai.thumbsUp(bot,this.id,number)
+    /**
+     * 访问空间
+     * @see visitQQZone
+     */
+    public  suspend fun visitQQZone(): String = Mirai.visitQQZone(bot,this.id)
+    /**
+     * 空间互动
+     * @see likeQQZone
+     * @param type 1、爱心 , 2、涂鸦 、3、平底锅
+     * @param number 数量
+     */
+    public  suspend fun likeQQZone(type:Int =1,number: Int=1): String = Mirai.likeQQZone(bot,this.id,type,number)
 }
 
 /**
@@ -116,4 +133,5 @@ public val Member.remarkOrNameCard: String get() = this.remark.takeIf { it.isNot
  * 若 [备注][User.remark] 不为空则返回备注, 为空则返回 [Member.nameCardOrNick]
  */
 public val Member.remarkOrNameCardOrNick: String get() = this.remark.takeIf { it.isNotEmpty() } ?: this.nameCardOrNick
+
 
